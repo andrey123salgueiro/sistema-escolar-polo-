@@ -1,0 +1,200 @@
+import {
+  User,
+  Question,
+  QuestionSection,
+  PreCouncilReport,
+  SchoolClass,
+  Student,
+} from '../types';
+import {
+  INITIAL_USERS,
+  INITIAL_QUESTIONS,
+  INITIAL_SECTIONS,
+  INITIAL_REPORTS,
+  INITIAL_CLASSES,
+  INITIAL_STUDENTS,
+} from '../data/initialData';
+
+const USERS_KEY = 'pre_conselho_users';
+const QUESTIONS_KEY = 'pre_conselho_questions';
+const SECTIONS_KEY = 'pre_conselho_sections';
+const REPORTS_KEY = 'pre_conselho_reports';
+const CURRENT_USER_KEY = 'pre_conselho_current_user';
+const CLASSES_KEY = 'pre_conselho_classes';
+const STUDENTS_KEY = 'pre_conselho_students';
+
+export function getStoredUsers(): User[] {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    if (!raw) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(INITIAL_USERS));
+      return INITIAL_USERS;
+    }
+    const parsed: User[] = JSON.parse(raw);
+    let hasChanges = false;
+    // Ensure all users have passwords populated and diretora has default username fallback
+    const fixed = parsed.map((u) => {
+      const updatedUser = { ...u };
+      if (u.role === 'diretora') {
+        if (!updatedUser.username) {
+          updatedUser.username = 'admin';
+          hasChanges = true;
+        }
+        if (!updatedUser.password) {
+          updatedUser.password = '123';
+          hasChanges = true;
+        }
+      } else {
+        if (!updatedUser.password) {
+          updatedUser.password = '123';
+          hasChanges = true;
+        }
+      }
+      return updatedUser;
+    });
+
+    if (hasChanges) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(fixed));
+    }
+    return fixed;
+  } catch (e) {
+    console.error('Failed to parse stored users', e);
+    return INITIAL_USERS;
+  }
+}
+
+export function saveStoredUsers(users: User[]) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+export function getStoredSections(): QuestionSection[] {
+  try {
+    const raw = localStorage.getItem(SECTIONS_KEY);
+    if (!raw) {
+      localStorage.setItem(SECTIONS_KEY, JSON.stringify(INITIAL_SECTIONS));
+      return INITIAL_SECTIONS;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to parse stored sections', e);
+    return INITIAL_SECTIONS;
+  }
+}
+
+export function saveStoredSections(sections: QuestionSection[]) {
+  localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+}
+
+export function getStoredQuestions(): Question[] {
+  try {
+    const raw = localStorage.getItem(QUESTIONS_KEY);
+    if (!raw) {
+      localStorage.setItem(QUESTIONS_KEY, JSON.stringify(INITIAL_QUESTIONS));
+      return INITIAL_QUESTIONS;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to parse stored questions', e);
+    return INITIAL_QUESTIONS;
+  }
+}
+
+export function saveStoredQuestions(questions: Question[]) {
+  localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions));
+}
+
+export function getStoredReports(): PreCouncilReport[] {
+  try {
+    const raw = localStorage.getItem(REPORTS_KEY);
+    if (!raw) {
+      localStorage.setItem(REPORTS_KEY, JSON.stringify(INITIAL_REPORTS));
+      return INITIAL_REPORTS;
+    }
+    const parsed: PreCouncilReport[] = JSON.parse(raw);
+    return parsed.map((r) => ({
+      ...r,
+      bimester:
+        r.bimester === '1º Bimestre'
+          ? '1º Trimestre'
+          : r.bimester === '2º Bimestre'
+          ? '2º Trimestre'
+          : r.bimester === '3º Bimestre'
+          ? '3º Trimestre'
+          : r.bimester,
+    }));
+  } catch (e) {
+    console.error('Failed to parse stored reports', e);
+    return INITIAL_REPORTS;
+  }
+}
+
+export function saveStoredReports(reports: PreCouncilReport[]) {
+  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+}
+
+export function getStoredClasses(): SchoolClass[] {
+  try {
+    const raw = localStorage.getItem(CLASSES_KEY);
+    if (!raw) {
+      localStorage.setItem(CLASSES_KEY, JSON.stringify(INITIAL_CLASSES));
+      return INITIAL_CLASSES;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to parse stored classes', e);
+    return INITIAL_CLASSES;
+  }
+}
+
+export function saveStoredClasses(classes: SchoolClass[]) {
+  localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
+}
+
+export function getStoredStudents(): Student[] {
+  try {
+    const raw = localStorage.getItem(STUDENTS_KEY);
+    if (!raw) {
+      localStorage.setItem(STUDENTS_KEY, JSON.stringify(INITIAL_STUDENTS));
+      return INITIAL_STUDENTS;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to parse stored students', e);
+    return INITIAL_STUDENTS;
+  }
+}
+
+export function saveStoredStudents(students: Student[]) {
+  localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
+}
+
+export function getCurrentUser(): User | null {
+  try {
+    const raw = localStorage.getItem(CURRENT_USER_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed;
+    }
+  } catch (e) {
+    console.error('Failed to get current user', e);
+  }
+  return null;
+}
+
+export function setCurrentUser(user: User | null) {
+  if (user) {
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(CURRENT_USER_KEY);
+  }
+}
+
+export function resetToFactoryData() {
+  localStorage.setItem(USERS_KEY, JSON.stringify(INITIAL_USERS));
+  localStorage.setItem(QUESTIONS_KEY, JSON.stringify(INITIAL_QUESTIONS));
+  localStorage.setItem(SECTIONS_KEY, JSON.stringify(INITIAL_SECTIONS));
+  localStorage.setItem(REPORTS_KEY, JSON.stringify(INITIAL_REPORTS));
+  localStorage.setItem(CLASSES_KEY, JSON.stringify(INITIAL_CLASSES));
+  localStorage.setItem(STUDENTS_KEY, JSON.stringify(INITIAL_STUDENTS));
+  localStorage.removeItem(CURRENT_USER_KEY);
+}
